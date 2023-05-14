@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ProductService } from './product/product.service';
 import { ProductController } from './product/product.controller';
 import {
   Product,
@@ -14,12 +13,13 @@ import {
   CategoriesTree,
   CategoriesTreeSchema,
 } from '../../shop_shared_server/schema/categories-tree.schema';
-import { CategoryService } from './category/category.service';
 import { CategoryController } from './category/category.controller';
 import {
   Category,
   CategorySchema,
 } from '../../shop_shared_server/schema/category.schema';
+import { ProductService } from "../../shop_shared_server/service/product/product.service";
+import { CategoryService } from "../../shop_shared_server/service/category/category.service";
 
 @Module({
   imports: [
