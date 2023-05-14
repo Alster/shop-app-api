@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
-import { CategoryService } from './category.service';
 import {
   mapCategoriesNodeDTOToCategoryNode,
   mapCategoriesTreeDocumentToCategoriesTreeDTO,
@@ -8,6 +7,7 @@ import { mapCategoryToCategoryDto } from '../mapper/map.category-to-categoryDTO'
 import { CategoriesNodeDto } from '../../../shop_shared/dto/categories-tree.dto';
 import { CategoryDto } from '../../../shop_shared/dto/category.dto';
 import { LanguageEnum } from '../../../shop_shared/constants/localization';
+import { CategoryService } from '../../../shop_shared_server/service/category/category.service';
 
 @Controller('category')
 export class CategoryController {

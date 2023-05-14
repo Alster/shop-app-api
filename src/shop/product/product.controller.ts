@@ -8,7 +8,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateProductRequestDto } from '../dto/create-product.request.dto';
-import { ProductService } from './product.service';
 import { mapAttributeDocumentToAttributeDTO } from '../mapper/map.attributeDocument-to-attributeDTO';
 import { mapProductDocumentToProductAdminDto } from '../mapper/map.productDocument-to-productAdminDto';
 import { ObjectId } from 'mongodb';
@@ -16,6 +15,7 @@ import { ProductAdminDto } from '../../../shop_shared/dto/product.dto';
 import { ProductListResponseDto } from '../../../shop_shared/dto/product-list.response.dto';
 import { LanguageEnum } from '../../../shop_shared/constants/localization';
 import { AttributeDto } from '../../../shop_shared/dto/attribute.dto';
+import { ProductService } from '../../../shop_shared_server/service/product/product.service';
 
 @Controller('product')
 export class ProductController {
