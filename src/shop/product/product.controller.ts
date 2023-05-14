@@ -7,7 +7,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CreateProductRequestDto } from '../dto/create-product.request.dto';
+import { CreateProductRequestDto } from '../../../shop_shared_server/dto/create-product.request.dto';
 import { mapAttributeDocumentToAttributeDTO } from '../mapper/map.attributeDocument-to-attributeDTO';
 import { mapProductDocumentToProductAdminDto } from '../mapper/map.productDocument-to-productAdminDto';
 import { ObjectId } from 'mongodb';
