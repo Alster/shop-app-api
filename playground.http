@@ -1,4 +1,4 @@
-POST http://localhost:4300/product/create
+POST http://localhost:4400/product/create
 Content-Type: application/json
 
 {

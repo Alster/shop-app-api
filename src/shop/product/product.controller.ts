@@ -1,21 +1,12 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { CreateProductRequestDto } from '../../../shop_shared_server/dto/create-product.request.dto';
+import { Body, Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import { LanguageEnum } from '../../../shop_shared/constants/localization';
 import { ProductService } from '../../../shop_shared_server/service/product/product.service';
-import { ProductAdminDto } from '../../../shop_shared/dto/product/product.dto';
-import { mapProductDocumentToProductAdminDto } from '../../../shop_shared_server/mapper/product/map.productDocument-to-productAdminDto';
-import { ProductListResponseDto } from '../../../shop_shared/dto/product/product-list.response.dto';
+import { ProductDto } from '../../../shop_shared/dto/product/product.dto';
 import { AttributeDto } from '../../../shop_shared/dto/product/attribute.dto';
 import { mapAttributeDocumentToAttributeDTO } from '../../../shop_shared_server/mapper/product/map.attributeDocument-to-attributeDTO';
+import { mapProductDocumentToProductDto } from '../../../shop_shared_server/mapper/product/map.productDocument-to-productDto';
+import { ProductListResponseDto } from "../../../shop_shared/dto/product/product-list.response.dto";
 
 @Controller('product')
 export class ProductController {
@@ -23,52 +14,21 @@ export class ProductController {
 
   private logger: Logger = new Logger(ProductController.name);
 
-  @Post('create')
-  async postCreate(
-    @Body() createProductRequestDto: CreateProductRequestDto,
-  ): Promise<ProductAdminDto> {
-    this.logger.log(JSON.stringify(createProductRequestDto, null, 2));
-    const res = await this.productService.createProduct(
-      createProductRequestDto,
-    );
-
-    return mapProductDocumentToProductAdminDto(res);
-  }
-
-  @Post('update/:id')
-  async postUpdate(
-    @Body() updateData: ProductAdminDto,
-    @Param('id') id: string,
-  ): Promise<ProductAdminDto> {
-    const res = await this.productService.updateProduct(id, updateData);
-    if (!res) {
-      throw new Error(`Product not found with id ${id}`);
-    }
-    return mapProductDocumentToProductAdminDto(res);
-  }
-
-  @Post('clone/:id')
-  async postClone(@Param('id') id: string): Promise<ProductAdminDto> {
-    const res = await this.productService.cloneProduct(id);
-    return mapProductDocumentToProductAdminDto(res);
-  }
-
   @Get('get/:id')
-  async getProduct(@Param('id') id: string): Promise<ProductAdminDto> {
+  async getProduct(
+    @Param('id') id: string,
+    @Query('lang') lang: LanguageEnum,
+  ): Promise<ProductDto> {
     const res = await this.productService.getProduct(id);
     if (!res) {
       throw new Error(`Product not found with id ${id}`);
     }
-    return mapProductDocumentToProductAdminDto(res);
-  }
-
-  @Post('delete/:id')
-  async deleteProduct(@Param('id') id: string): Promise<void> {
-    await this.productService.deleteProduct(id);
+    return mapProductDocumentToProductDto(res, lang);
   }
 
   @Get('list')
   async list(
+    @Query('lang') lang: LanguageEnum,
     @Query('attrs') attrs: { key: string; values: string[] }[],
     @Query('categories') categories: string[],
     @Query('sortField') sortField: string,
@@ -77,6 +37,7 @@ export class ProductController {
     @Query('limit') limit: number,
     @Query('search') search: string,
   ): Promise<ProductListResponseDto> {
+    this.logger.log(lang);
     console.log('Attrs:', attrs);
     const query: any = {};
     if (attrs) {
@@ -96,26 +57,29 @@ export class ProductController {
     const sort: any = {};
     if (sortField) {
       if (sortField === 'title') {
-        sort[`${sortField}.${LanguageEnum.UA}`] = sortOrder;
+        sort[`${sortField}.${lang}`] = sortOrder;
       } else {
         sort[sortField] = sortOrder;
       }
     }
 
-    return await this.productService.find(
-      query,
-      sort,
-      skip,
-      limit,
-      LanguageEnum.UA,
-    );
+    const res = await this.productService.find(query, sort, skip, limit, lang);
+
+    return {
+      products: res.products.map((product) =>
+        mapProductDocumentToProductDto(product, lang),
+      ),
+      total: res.total,
+      filters: res.filters,
+      categories: res.categories,
+    }
   }
 
   @Get('attribute/list')
-  async getAttributes(): Promise<AttributeDto[]> {
+  async getAttributes(
+    @Query('lang') lang: LanguageEnum,
+  ): Promise<AttributeDto[]> {
     const res = await this.productService.getAttributes();
-    return res.map((attr) =>
-      mapAttributeDocumentToAttributeDTO(attr, LanguageEnum.UA),
-    );
+    return res.map((attr) => mapAttributeDocumentToAttributeDTO(attr, lang));
   }
 }
