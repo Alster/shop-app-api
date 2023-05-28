@@ -72,7 +72,7 @@ export class ProductController {
       total: res.total,
       filters: res.filters,
       categories: res.categories,
-    }
+    };
   }
 
   @Get('attribute/list')
