@@ -123,6 +123,9 @@ export class OrderController {
       let errorDescription = `INTERNAL_ERROR`;
       if (error instanceof PublicError) {
         errorDescription = error.message;
+      } else {
+        this.logger.error(error);
+        this.logger.error(error.stack);
       }
       return {
         url: `http://localhost:3000/${lang}/order/failed_to_create?reason=${errorDescription}`,
