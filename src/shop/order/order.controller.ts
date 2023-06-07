@@ -3,6 +3,7 @@ import {
   Get,
   HttpStatus,
   Logger,
+  NotFoundException,
   Param,
   Query,
   Redirect,
@@ -30,7 +31,7 @@ export class OrderController {
   ): Promise<OrderDto> {
     const order = await this.orderService.getOrder(id);
     if (!order) {
-      throw new Error(`Order not found with id ${id}`);
+      throw new NotFoundException();
     }
 
     return mapOrderDocumentToOrderDto(order);
