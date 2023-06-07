@@ -2,5 +2,6 @@
   "port": 4400,
   "mongo": {
     "url": "mongodb://localhost:27037/unicorn"
-  }
+  },
+  "monoBankApiKey": ""
 }

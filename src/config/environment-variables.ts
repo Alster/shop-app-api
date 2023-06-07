@@ -1,4 +1,4 @@
-import { IsPort, IsUrl } from 'class-validator';
+import { IsPort, IsString, IsUrl } from "class-validator";
 import { MongooseModuleOptions } from '@nestjs/mongoose/dist/interfaces/mongoose-options.interface';
 
 export class MongoConfig {
@@ -12,4 +12,7 @@ export class EnvironmentVariables {
   @IsPort()
   readonly port!: string;
   readonly mongo!: MongoConfig;
+
+  @IsString()
+  readonly monoBankApiKey!: string;
 }
