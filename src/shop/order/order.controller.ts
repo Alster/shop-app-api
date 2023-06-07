@@ -16,7 +16,6 @@ import {
 import { LanguageEnum } from '../../../shop_shared/constants/localization';
 import { OrderDto } from '../../../shop_shared/dto/order/order.dto';
 import { mapOrderDocumentToOrderDto } from '../../../shop_shared_server/mapper/order/map.orderDocument-to-orderDto';
-import { RedirectResponse } from '@nestjs/core/router/router-response-controller';
 
 @Controller('order')
 export class OrderController {
@@ -29,7 +28,6 @@ export class OrderController {
     @Param('id') id: string,
     @Query('lang') lang: LanguageEnum,
   ): Promise<OrderDto> {
-    this.logger.log(`Getting order with id ${id}`);
     const order = await this.orderService.getOrder(id);
     if (!order) {
       throw new Error(`Order not found with id ${id}`);
@@ -39,7 +37,7 @@ export class OrderController {
   }
 
   @Get('create')
-  // @Redirect()
+  @Redirect()
   async createOrder(
     @Res() res: any,
 
@@ -59,7 +57,6 @@ export class OrderController {
     @Query('building') building: string,
     @Query('room') room: string,
   ): Promise<{ url: string }> {
-    this.logger.log(`Creating order`);
     const order = await this.orderService.createOrder({
       firstName: first_name,
       lastName: last_name,
@@ -82,12 +79,8 @@ export class OrderController {
       },
     });
 
-    return res.redirect(
-      `http://localhost:3000/${lang}/order/${order._id.toString()}`,
-    );
-
-    // return {
-    //   url: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
-    // };
+    return {
+      url: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
+    };
   }
 }
