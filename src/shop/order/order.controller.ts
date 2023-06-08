@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  HttpStatus,
   Logger,
   NotFoundException,
   Param,
@@ -43,7 +42,7 @@ export class OrderController {
   async createOrder(
     @Res() res: any,
 
-    @Query('lang') lang: string,
+    @Query('lang') lang: LanguageEnum,
 
     @Query('first_name') first_name: string,
     @Query('last_name') last_name: string,
@@ -60,6 +59,7 @@ export class OrderController {
     @Query('room') room: string,
   ): Promise<{ url: string }> {
     try {
+      // Basic validation
       if (!first_name) {
         throw new PublicError('NO_FIRST_NAME');
       }
@@ -94,27 +94,31 @@ export class OrderController {
         throw new PublicError('NO_ROOM');
       }
 
-      const order = await this.orderService.createOrder({
-        firstName: first_name,
-        lastName: last_name,
-        phoneNumber: phone_number,
-        itemsData: JSON.parse(items_data),
-        delivery: {
-          whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
-          data:
-            where_to_deliver === NOVA_POSHTA_DELIVERY_TYPE.OFFICE
-              ? {
-                  cityName: city_name,
-                  officeName: office_name,
-                }
-              : {
-                  cityName: city_name,
-                  street: street,
-                  building: building,
-                  room: room,
-                },
+      // Create order
+      const order = await this.orderService.createOrder(
+        {
+          firstName: first_name,
+          lastName: last_name,
+          phoneNumber: phone_number,
+          itemsData: JSON.parse(items_data),
+          delivery: {
+            whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
+            data:
+              where_to_deliver === NOVA_POSHTA_DELIVERY_TYPE.OFFICE
+                ? {
+                    cityName: city_name,
+                    officeName: office_name,
+                  }
+                : {
+                    cityName: city_name,
+                    street: street,
+                    building: building,
+                    room: room,
+                  },
+          },
         },
-      });
+        lang,
+      );
 
       return {
         url: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
