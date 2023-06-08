@@ -95,30 +95,44 @@ export class OrderController {
       }
 
       // Create order
-      const order = await this.orderService.createOrder(
-        {
-          firstName: first_name,
-          lastName: last_name,
-          phoneNumber: phone_number,
-          itemsData: JSON.parse(items_data),
-          delivery: {
-            whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
-            data:
-              where_to_deliver === NOVA_POSHTA_DELIVERY_TYPE.OFFICE
-                ? {
-                    cityName: city_name,
-                    officeName: office_name,
-                  }
-                : {
-                    cityName: city_name,
-                    street: street,
-                    building: building,
-                    room: room,
-                  },
-          },
+      const order = await this.orderService.createOrder({
+        firstName: first_name,
+        lastName: last_name,
+        phoneNumber: phone_number,
+        itemsData: JSON.parse(items_data),
+        delivery: {
+          whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
+          data:
+            where_to_deliver === NOVA_POSHTA_DELIVERY_TYPE.OFFICE
+              ? {
+                  cityName: city_name,
+                  officeName: office_name,
+                }
+              : {
+                  cityName: city_name,
+                  street: street,
+                  building: building,
+                  room: room,
+                },
         },
-        lang,
-      );
+      });
+
+      // const monoResponse: {
+      //   invoiceId: string;
+      //   pageUrl: string;
+      // } = await fetchMono({
+      //   amount: Math.round(totalPrice * 100),
+      //   ccy: 980,
+      //   merchantPaymInfo: {
+      //     reference: order[0]._id.toString(),
+      //     destination: 'Покупка щастя',
+      //     basketOrder: [],
+      //   },
+      //   redirectUrl: `http://localhost:3000/${lang}/order/${order[0]._id.toString()}`,
+      //   webHookUrl: 'http://api.unicorn.ua/order/webhook/mono/',
+      //   validity: 3600,
+      //   paymentType: 'debit',
+      // });
 
       return {
         url: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
