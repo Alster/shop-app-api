@@ -43,6 +43,7 @@ export class OrderController {
     @Res() res: any,
 
     @Query('lang') lang: LanguageEnum,
+    @Query('currency') currency: string,
 
     @Query('first_name') first_name: string,
     @Query('last_name') last_name: string,
@@ -60,6 +61,9 @@ export class OrderController {
   ): Promise<{ url: string }> {
     try {
       // Basic validation
+      if (!currency) {
+        throw new PublicError('NO_CURRENCY');
+      }
       if (!first_name) {
         throw new PublicError('NO_FIRST_NAME');
       }
@@ -96,6 +100,7 @@ export class OrderController {
 
       // Create order
       const order = await this.orderService.createOrder({
+        currency,
         firstName: first_name,
         lastName: last_name,
         phoneNumber: phone_number,
