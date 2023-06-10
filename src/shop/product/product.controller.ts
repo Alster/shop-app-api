@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
-import { LanguageEnum } from '../../../shop_shared/constants/localization';
-import { ProductService } from '../../../shop_shared_server/service/product/product.service';
-import { ProductDto } from '../../../shop_shared/dto/product/product.dto';
-import { AttributeDto } from '../../../shop_shared/dto/product/attribute.dto';
-import { mapAttributeDocumentToAttributeDTO } from '../../../shop_shared_server/mapper/product/map.attributeDocument-to-attributeDTO';
-import { mapProductDocumentToProductDto } from '../../../shop_shared_server/mapper/product/map.productDocument-to-productDto';
-import { ProductListResponseDto } from '../../../shop_shared/dto/product/product-list.response.dto';
+import { LanguageEnum } from '../../../shop-shared/constants/localization';
+import { ProductService } from '../../../shop-shared-server/service/product/product.service';
+import { ProductDto } from '../../../shop-shared/dto/product/product.dto';
+import { AttributeDto } from '../../../shop-shared/dto/product/attribute.dto';
+import { mapAttributeDocumentToAttributeDTO } from '../../../shop-shared-server/mapper/product/map.attributeDocument-to-attributeDTO';
+import { mapProductDocumentToProductDto } from '../../../shop-shared-server/mapper/product/map.productDocument-to-productDto';
+import { ProductListResponseDto } from '../../../shop-shared/dto/product/product-list.response.dto';
 
 @Controller('product')
 export class ProductController {

@@ -8,21 +8,26 @@ import {
   Redirect,
   Res,
 } from '@nestjs/common';
-import { OrderService } from '../../../shop_shared_server/service/order/order.service';
+import { OrderService } from '../../../shop-shared-server/service/order/order.service';
 import {
   NOVA_POSHTA_DELIVERY_TYPE,
   NovaPoshtaDeliveryType,
-} from '../../../shop_shared/constants/checkout';
-import { LanguageEnum } from '../../../shop_shared/constants/localization';
-import { OrderDto } from '../../../shop_shared/dto/order/order.dto';
-import { mapOrderDocumentToOrderDto } from '../../../shop_shared_server/mapper/order/map.orderDocument-to-orderDto';
-import { PublicError } from '../../../shop_shared_server/helpers/publicError';
-import { CURRENCIES, CURRENCY } from '../../../shop_shared/constants/exchange';
+} from '../../../shop-shared/constants/checkout';
+import { LanguageEnum } from '../../../shop-shared/constants/localization';
+import { OrderDto } from '../../../shop-shared/dto/order/order.dto';
+import { mapOrderDocumentToOrderDto } from '../../../shop-shared-server/mapper/order/map.orderDocument-to-orderDto';
+import { PublicError } from '../../../shop-shared-server/helpers/publicError';
+import {
+  CURRENCIES,
+  CURRENCY,
+  CURRENCY_TO_ISO_4217,
+} from '../../../shop-shared/constants/exchange';
 import {
   CreateOrderItemDataDto,
   DeliveryNVCourierDto,
   DeliveryNVOfficeDto,
-} from '../../../shop_shared/dto/order/create-order.dto';
+} from '../../../shop-shared/dto/order/create-order.dto';
+import { fetchMono } from '../../utils/fetchMono';
 
 @Controller('order')
 export class OrderController {
@@ -47,18 +52,13 @@ export class OrderController {
   @Redirect()
   async createOrder(
     @Res() res: any,
-
     @Query('lang') lang: unknown,
     @Query('currency') currency: unknown,
-
     @Query('first_name') first_name: unknown,
     @Query('last_name') last_name: unknown,
     @Query('phone_number') phone_number: unknown,
-
     @Query('items_data') items_data: unknown,
-
     @Query('where_to_deliver') where_to_deliver: unknown,
-
     @Query('city_name') city_name: unknown,
     @Query('office_name') office_name: unknown,
     @Query('street') street: unknown,
@@ -66,7 +66,7 @@ export class OrderController {
     @Query('room') room: unknown,
   ): Promise<{ url: string }> {
     try {
-      // Basic validation
+      //#region Basic validation
 
       // Currency
       if (!currency) {
@@ -283,31 +283,35 @@ export class OrderController {
         where_to_deliver === NOVA_POSHTA_DELIVERY_TYPE.OFFICE
           ? getNVOffice(city_name)
           : getNVCourier(city_name);
+      //#endregion
+
       // Create order
-      const order = await this.orderService.createOrder({
-        currency,
-        firstName: first_name,
-        lastName: last_name,
-        phoneNumber: phone_number,
-        itemsData: items_data_parsed,
-        delivery: {
-          whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
-          data: deliveryData,
+      const [order, totalPrice, products] = await this.orderService.createOrder(
+        {
+          currency: currency as CURRENCY,
+          firstName: first_name,
+          lastName: last_name,
+          phoneNumber: phone_number,
+          itemsData: items_data_parsed,
+          delivery: {
+            whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
+            data: deliveryData,
+          },
         },
-      });
+      );
 
       // const monoResponse: {
       //   invoiceId: string;
       //   pageUrl: string;
       // } = await fetchMono({
-      //   amount: Math.round(totalPrice * 100),
-      //   ccy: 980,
+      //   amount: totalPrice,
+      //   ccy: CURRENCY_TO_ISO_4217[currency as CURRENCY],
       //   merchantPaymInfo: {
-      //     reference: order[0]._id.toString(),
+      //     reference: order._id.toString(),
       //     destination: 'Покупка щастя',
       //     basketOrder: [],
       //   },
-      //   redirectUrl: `http://localhost:3000/${lang}/order/${order[0]._id.toString()}`,
+      //   redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
       //   webHookUrl: 'http://api.unicorn.ua/order/webhook/mono/',
       //   validity: 3600,
       //   paymentType: 'debit',
