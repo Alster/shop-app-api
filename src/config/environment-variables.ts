@@ -1,4 +1,4 @@
-import { IsPort, IsString, IsUrl } from "class-validator";
+import { IsPort, IsString, IsUrl } from 'class-validator';
 import { MongooseModuleOptions } from '@nestjs/mongoose/dist/interfaces/mongoose-options.interface';
 
 export class MongoConfig {

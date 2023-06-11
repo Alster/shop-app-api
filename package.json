@@ -67,7 +67,7 @@
     ],
     "roots": [
       "src",
-      "shop_shared_server"
+      "shop-shared_server"
     ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
