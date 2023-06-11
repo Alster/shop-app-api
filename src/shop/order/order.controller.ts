@@ -240,7 +240,7 @@ export class OrderController {
         throw new PublicError('INVALID_CITY_NAME');
       }
       // Greater than 3 and smaller than 30
-      if (city_name.length < 3 || city_name.length > 30) {
+      if (city_name.length < 3 || city_name.length > 300) {
         throw new PublicError('INVALID_CITY_NAME');
       }
       const getNVOffice = (city_name: string): DeliveryNVOfficeDto => {
@@ -253,7 +253,7 @@ export class OrderController {
           throw new PublicError('INVALID_OFFICE_NAME');
         }
         // Greater than 3 and smaller than 30
-        if (office_name.length < 3 || office_name.length > 30) {
+        if (office_name.length < 3 || office_name.length > 300) {
           throw new PublicError('INVALID_OFFICE_NAME');
         }
 
@@ -343,18 +343,18 @@ export class OrderController {
           merchantPaymInfo: {
             reference: order._id.toString(),
             destination: 'Покупка щастя',
-            basketOrder: [
-              products.map((product) => ({
-                name: getTranslation(product.title, lang as LanguageEnum),
-                qty: 1,
-                sum: doExchange(
-                  product.currency,
-                  currency as CURRENCY,
-                  product.price,
-                  exchangeState,
-                ),
-              })),
-            ],
+            // basketOrder: [
+            //   products.map((product) => ({
+            //     name: getTranslation(product.title, lang as LanguageEnum),
+            //     qty: 1,
+            //     sum: doExchange(
+            //       product.currency,
+            //       currency as CURRENCY,
+            //       product.price,
+            //       exchangeState,
+            //     ),
+            //   })),
+            // ],
           },
           redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
           webHookUrl: 'http://178.54.11.35:4400/order/webhook/mono/',
@@ -388,10 +388,13 @@ export class OrderController {
       let errorDescription = `INTERNAL_ERROR`;
       if (error instanceof PublicError) {
         errorDescription = error.message;
+        this.logger.warn(error);
+        this.logger.warn(error.stack);
       } else {
         this.logger.error(error);
         this.logger.error(error.stack);
       }
+
       return {
         url: `http://localhost:3000/${lang}/order/failed_to_create?reason=${errorDescription}`,
       };
