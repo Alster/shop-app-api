@@ -33,15 +33,19 @@ import { fetchMono } from '../../utils/fetchMono';
 import { getTranslation } from '../../../shop-shared-server/helpers/translation-helpers';
 import { loadExchangeState } from '../../../shop-exchange-shared/loadExchangeState';
 import { doExchange } from '../../../shop-exchange-shared/doExchange';
-import { ORDER_STATUS } from '../../../shop-shared/constants/order';
+import {
+  ORDER_STATUS,
+  OrderStatus,
+} from '../../../shop-shared/constants/order';
 import { OrderDocument } from '../../../shop-shared-server/schema/order.schema';
+
 import {
   IMonobankCreateInvoiceResponseDto,
   IMonobankErrorDto,
   IMonobankWebhookDto,
   isIMonobankError,
-} from './Monobank';
-import { MonobankInvoiceStatusEnum } from '../../../shop-shared/dto/order/Monobank';
+  MonobankInvoiceStatusEnum,
+} from '../../../shop-shared/dto/order/Monobank';
 
 @Controller('order')
 export class OrderController {
@@ -366,7 +370,7 @@ export class OrderController {
             `MONOBANK_ERROR: ${monoResponse.errCode} - ${monoResponse.errText}`,
           );
         }
-        await this.orderService.setInvoiceId(
+        await this.orderService.setInvoice(
           order.id.toString(),
           monoResponse.invoiceId,
         );
@@ -421,52 +425,64 @@ export class OrderController {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.PENDING,
-          { monoStatus: body.status },
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.processing]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.PENDING,
-          { monoStatus: body.status },
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.hold]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.PENDING,
-          { monoStatus: body.status },
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.success]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.PAID,
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.failure]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.FAILED,
-          { monoStatus: body.status, reason: body.failureReason },
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.reversed]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.FAILED,
-          { monoStatus: body.status, reason: body.failureReason },
+          { monoResponse: body },
         );
       },
       [MonobankInvoiceStatusEnum.expired]: async () => {
         await this.orderService.updateOrderStatus(
           order._id.toString(),
           ORDER_STATUS.FAILED,
-          { monoStatus: body.status, reason: body.failureReason },
+          { monoResponse: body },
         );
       },
     };
 
     await statusStrategy[body.status]();
+  }
+
+  @Get('status/:orderId')
+  async getOrderStatus(
+    @Param('orderId') orderId: string,
+  ): Promise<OrderStatus> {
+    const order = await this.orderService.getOrder(orderId);
+    if (!order) {
+      throw new PublicError('ORDER_NOT_FOUND');
+    }
+    return order.status;
   }
 }
