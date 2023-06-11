@@ -173,29 +173,29 @@ export class OrderController {
           throw new PublicError('INVALID_ITEMS');
         }
         // Must have attrs
-        if (!item.attrs) {
+        if (!item.attributes) {
           throw new PublicError('INVALID_ITEMS');
         }
         // attrs must be object
-        if (typeof item.attrs !== 'object') {
+        if (typeof item.attributes !== 'object') {
           throw new PublicError('INVALID_ITEMS');
         }
         // attrs must have at least one attr
-        if (Object.keys(item.attrs).length === 0) {
+        if (Object.keys(item.attributes).length === 0) {
           throw new PublicError('INVALID_ITEMS');
         }
         // Check each attr
-        for (const attr of Object.keys(item.attrs)) {
+        for (const attr of Object.keys(item.attributes)) {
           // Must be array
-          if (!Array.isArray(item.attrs[attr])) {
+          if (!Array.isArray(item.attributes[attr])) {
             throw new PublicError('INVALID_ITEMS');
           }
           // Must have at least one value
-          if (item.attrs[attr].length === 0) {
+          if (item.attributes[attr].length === 0) {
             throw new PublicError('INVALID_ITEMS');
           }
           // Check each value
-          for (const value of item.attrs[attr]) {
+          for (const value of item.attributes[attr]) {
             // Must be string
             if (typeof value !== 'string') {
               throw new PublicError('INVALID_ITEMS');
