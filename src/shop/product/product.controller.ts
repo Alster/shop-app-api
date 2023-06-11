@@ -54,8 +54,8 @@ export class ProductController {
       };
     }
 
-    // query.active = true;
-    // query.quantity = { $gt: 0 };
+    query.active = true;
+    query.quantity = { $gt: 0 };
 
     const sort: any = {};
     if (sortField) {
