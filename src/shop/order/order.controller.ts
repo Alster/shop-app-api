@@ -1,9 +1,11 @@
 import {
+  Body,
   Controller,
   Get,
   Logger,
   NotFoundException,
   Param,
+  Post,
   Query,
   Redirect,
   Res,
@@ -28,6 +30,18 @@ import {
   DeliveryNVOfficeDto,
 } from '../../../shop-shared/dto/order/create-order.dto';
 import { fetchMono } from '../../utils/fetchMono';
+import { getTranslation } from '../../../shop-shared-server/helpers/translation-helpers';
+import { loadExchangeState } from '../../../shop-exchange-shared/loadExchangeState';
+import { doExchange } from '../../../shop-exchange-shared/doExchange';
+import { ORDER_STATUS } from '../../../shop-shared/constants/order';
+import { OrderDocument } from '../../../shop-shared-server/schema/order.schema';
+import {
+  IMonobankCreateInvoiceResponseDto,
+  IMonobankErrorDto,
+  IMonobankWebhookDto,
+  isIMonobankError,
+} from './Monobank';
+import { MonobankInvoiceStatusEnum } from '../../../shop-shared/dto/order/Monobank';
 
 @Controller('order')
 export class OrderController {
@@ -66,7 +80,21 @@ export class OrderController {
     @Query('room') room: unknown,
   ): Promise<{ url: string }> {
     try {
+      let order: OrderDocument | null = null;
       //#region Basic validation
+
+      // Lang
+      if (!lang) {
+        throw new PublicError('NO_LANG');
+      }
+      // Must be string
+      if (typeof lang !== 'string') {
+        throw new PublicError('INVALID_LANG');
+      }
+      // Must be one of the languages
+      if (!Object.values(LanguageEnum).includes(lang as LanguageEnum)) {
+        throw new PublicError('INVALID_LANG');
+      }
 
       // Currency
       if (!currency) {
@@ -285,41 +313,77 @@ export class OrderController {
           : getNVCourier(city_name);
       //#endregion
 
+      const exchangeState = await loadExchangeState();
+
       // Create order
-      const [order, totalPrice, products] = await this.orderService.createOrder(
-        {
-          currency: currency as CURRENCY,
-          firstName: first_name,
-          lastName: last_name,
-          phoneNumber: phone_number,
-          itemsData: items_data_parsed,
-          delivery: {
-            whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
-            data: deliveryData,
+      const [_order, totalPrice, products] =
+        await this.orderService.createOrder(
+          {
+            currency: currency as CURRENCY,
+            firstName: first_name,
+            lastName: last_name,
+            phoneNumber: phone_number,
+            itemsData: items_data_parsed,
+            delivery: {
+              whereToDeliver: where_to_deliver as NovaPoshtaDeliveryType,
+              data: deliveryData,
+            },
           },
-        },
-      );
+          exchangeState,
+        );
+      order = _order;
 
-      // const monoResponse: {
-      //   invoiceId: string;
-      //   pageUrl: string;
-      // } = await fetchMono({
-      //   amount: totalPrice,
-      //   ccy: CURRENCY_TO_ISO_4217[currency as CURRENCY],
-      //   merchantPaymInfo: {
-      //     reference: order._id.toString(),
-      //     destination: 'Покупка щастя',
-      //     basketOrder: [],
-      //   },
-      //   redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
-      //   webHookUrl: 'http://api.unicorn.ua/order/webhook/mono/',
-      //   validity: 3600,
-      //   paymentType: 'debit',
-      // });
-
-      return {
-        url: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
-      };
+      try {
+        // Create invoice
+        const monoResponse:
+          | IMonobankCreateInvoiceResponseDto
+          | IMonobankErrorDto = await fetchMono({
+          amount: totalPrice,
+          ccy: CURRENCY_TO_ISO_4217[currency as CURRENCY],
+          merchantPaymInfo: {
+            reference: order._id.toString(),
+            destination: 'Покупка щастя',
+            basketOrder: [
+              products.map((product) => ({
+                name: getTranslation(product.title, lang as LanguageEnum),
+                qty: 1,
+                sum: doExchange(
+                  product.currency,
+                  currency as CURRENCY,
+                  product.price,
+                  exchangeState,
+                ),
+              })),
+            ],
+          },
+          redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
+          webHookUrl: 'http://178.54.11.35:4400/order/webhook/mono/',
+          validity: 3600,
+          paymentType: 'debit',
+        });
+        if (isIMonobankError(monoResponse)) {
+          throw new Error(
+            `MONOBANK_ERROR: ${monoResponse.errCode} - ${monoResponse.errText}`,
+          );
+        }
+        await this.orderService.setInvoiceId(
+          order.id.toString(),
+          monoResponse.invoiceId,
+        );
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.PENDING,
+        );
+        return {
+          url: monoResponse.pageUrl,
+        };
+      } catch (error) {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.FAILED,
+        );
+        throw error;
+      }
     } catch (error) {
       let errorDescription = `INTERNAL_ERROR`;
       if (error instanceof PublicError) {
@@ -332,5 +396,74 @@ export class OrderController {
         url: `http://localhost:3000/${lang}/order/failed_to_create?reason=${errorDescription}`,
       };
     }
+  }
+
+  @Post('webhook/mono')
+  async monoWebhook(@Body() body: IMonobankWebhookDto | IMonobankErrorDto) {
+    this.logger.log('MONO WEBHOOK', JSON.stringify(body));
+
+    if (isIMonobankError(body)) {
+      throw new Error(`MONOBANK_ERROR: ${body.errCode} - ${body.errText}`);
+    }
+
+    const order = await this.orderService.getOrderByInvoiceId(body.invoiceId);
+    if (!order) {
+      throw new Error(`ORDER_NOT_FOUND_BY_INVOICE:${body.invoiceId}`);
+    }
+
+    const statusStrategy: {
+      [key in keyof typeof MonobankInvoiceStatusEnum]: () => Promise<void>;
+    } = {
+      [MonobankInvoiceStatusEnum.created]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.PENDING,
+          { monoStatus: body.status },
+        );
+      },
+      [MonobankInvoiceStatusEnum.processing]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.PENDING,
+          { monoStatus: body.status },
+        );
+      },
+      [MonobankInvoiceStatusEnum.hold]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.PENDING,
+          { monoStatus: body.status },
+        );
+      },
+      [MonobankInvoiceStatusEnum.success]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.PAID,
+        );
+      },
+      [MonobankInvoiceStatusEnum.failure]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.FAILED,
+          { monoStatus: body.status, reason: body.failureReason },
+        );
+      },
+      [MonobankInvoiceStatusEnum.reversed]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.FAILED,
+          { monoStatus: body.status, reason: body.failureReason },
+        );
+      },
+      [MonobankInvoiceStatusEnum.expired]: async () => {
+        await this.orderService.updateOrderStatus(
+          order._id.toString(),
+          ORDER_STATUS.FAILED,
+          { monoStatus: body.status, reason: body.failureReason },
+        );
+      },
+    };
+
+    await statusStrategy[body.status]();
   }
 }

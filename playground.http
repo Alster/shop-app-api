@@ -7,3 +7,11 @@ Content-Type: application/json
 }
 
 ###
+
+POST http://178.54.11.35:4400/order/webhook/mono/
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "price": 42
+}
