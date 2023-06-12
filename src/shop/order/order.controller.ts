@@ -485,4 +485,9 @@ export class OrderController {
     }
     return order.status;
   }
+
+  @Post('cancel/:orderId')
+  async cancelOrder(@Param('orderId') orderId: string): Promise<void> {
+    await this.orderService.cancelOrder(orderId);
+  }
 }

@@ -20,6 +20,7 @@ const logger: Logger = new Logger('AppModule');
         await redisClient.quit();
         logger.log('Graceful shutdown completed');
       },
+      gracefulShutdownTimeout: 30 * 1000,
     }),
     MongooseModule.forRoot(Config.get().mongo.url, Config.get().mongo.options),
     ShopModule,
