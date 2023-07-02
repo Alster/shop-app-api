@@ -46,7 +46,7 @@ export class ProductController {
       });
     }
     if (categories) {
-      query.categoriesAll = { $in: categories.map((id) => new ObjectId(id)) };
+      query.categoriesAll = { $all: categories.map((id) => id) };
     }
     if (search) {
       query.$text = {
