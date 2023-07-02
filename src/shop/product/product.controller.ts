@@ -26,6 +26,18 @@ export class ProductController {
     return mapProductDocumentToProductDto(res, lang);
   }
 
+  @Get('get/public/:publicId')
+  async getProductPublic(
+    @Param('publicId') publicId: string,
+    @Query('lang') lang: LanguageEnum,
+  ): Promise<ProductDto> {
+    const res = await this.productService.getProductByPublicId(publicId);
+    if (!res) {
+      throw new Error(`Product not found with public id ${publicId}`);
+    }
+    return mapProductDocumentToProductDto(res, lang);
+  }
+
   @Get('list')
   async list(
     @Query('lang') lang: LanguageEnum,
