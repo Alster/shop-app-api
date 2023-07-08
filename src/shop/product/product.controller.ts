@@ -52,22 +52,27 @@ export class ProductController {
     this.logger.log(lang);
     console.log('Attrs:', attrs);
     const query: any = {};
-    if (attrs) {
-      attrs.forEach(({ key, values }) => {
-        query[`attrs.${key}`] = { $in: values };
-      });
-    }
-    if (categories) {
-      query.categoriesAll = { $all: categories.map((id) => id) };
-    }
+
+    // Index will be intersected
     if (search) {
       query.$text = {
         $search: search,
       };
     }
-
+    // First equality field
     query.active = true;
+
     query.quantity = { $gt: 0 };
+
+    if (categories) {
+      query.categoriesAll = { $all: categories.map((id) => id) };
+    }
+
+    if (attrs) {
+      attrs.forEach(({ key, values }) => {
+        query[`attrs.${key}`] = { $in: values };
+      });
+    }
 
     const sort: any = {};
     if (sortField) {
