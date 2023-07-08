@@ -13,9 +13,12 @@ export class CategoryController {
   private logger: Logger = new Logger(CategoryController.name);
 
   @Get('tree')
-  async getCategoriesTrees(): Promise<CategoriesNodeDto[]> {
+  async getCategoriesTrees(
+    @Query('lang') lang: LanguageEnum,
+  ): Promise<CategoriesNodeDto[]> {
     const categoriesTree = await this.categoryService.getCategoriesTree();
-    return mapCategoriesTreeDocumentToCategoriesTreeDTO(categoriesTree).root;
+    return mapCategoriesTreeDocumentToCategoriesTreeDTO(categoriesTree, lang)
+      .root;
   }
 
   @Get('list')
