@@ -69,10 +69,10 @@ export class ProductController {
 
     const priceQuery: any = {};
     if (priceFrom !== undefined && !isNaN(priceFrom)) {
-      priceQuery.$gt = priceFrom;
+      priceQuery.$gte = priceFrom;
     }
     if (priceTo !== undefined && !isNaN(priceTo)) {
-      priceQuery.$lt = priceTo;
+      priceQuery.$lte = priceTo;
     }
     if (Object.keys(priceQuery).length > 0) {
       query.price = priceQuery;
