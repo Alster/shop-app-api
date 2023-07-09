@@ -44,10 +44,12 @@ export class ProductController {
     @Query('attrs') attrs: { key: string; values: string[] }[],
     @Query('categories') categories: string[],
     @Query('sortField') sortField: string,
-    @Query('sortOrder') sortOrder: number,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc',
     @Query('skip') skip: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
+    @Query('priceFrom') priceFrom: number,
+    @Query('priceTo') priceTo: number,
   ): Promise<ProductListResponseDto> {
     this.logger.log(lang);
     console.log('Attrs:', attrs);
@@ -62,7 +64,19 @@ export class ProductController {
     // First equality field
     query.active = true;
 
+    // Range fields
     query.quantity = { $gt: 0 };
+
+    const priceQuery: any = {};
+    if (priceFrom !== undefined && !isNaN(priceFrom)) {
+      priceQuery.$gt = priceFrom;
+    }
+    if (priceTo !== undefined && !isNaN(priceTo)) {
+      priceQuery.$lt = priceTo;
+    }
+    if (Object.keys(priceQuery).length > 0) {
+      query.price = priceQuery;
+    }
 
     if (categories) {
       query.categoriesAll = { $all: categories.map((id) => id) };
@@ -77,9 +91,9 @@ export class ProductController {
     const sort: any = {};
     if (sortField) {
       if (sortField === 'title') {
-        sort[`${sortField}.${lang}`] = sortOrder;
+        sort[`${sortField}.${lang}`] = sortOrder === 'asc' ? 1 : -1;
       } else {
-        sort[sortField] = sortOrder;
+        sort[sortField] = sortOrder === 'asc' ? 1 : -1;
       }
     }
 
@@ -92,6 +106,8 @@ export class ProductController {
       total: res.total,
       filters: res.filters,
       categories: res.categories,
+      priceMin: res.priceMin,
+      priceMax: res.priceMax,
     };
   }
 
