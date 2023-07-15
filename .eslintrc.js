@@ -59,6 +59,7 @@ module.exports = {
 		semi: [2, "always"],
 		"no-console": "error",
 		"no-duplicate-imports": "error",
+		"linebreak-style": ["error", "unix"],
 		"@typescript-eslint/promise-function-async": "error",
 		"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
 		"@typescript-eslint/naming-convention": [
