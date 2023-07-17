@@ -97,6 +97,7 @@ module.exports = {
 		"@typescript-eslint/explicit-function-return-type": "warn",
 		"@typescript-eslint/explicit-module-boundary-types": "error",
 		"@typescript-eslint/no-explicit-any": "error",
+		"@typescript-eslint/no-floating-promises": "error",
 		"@darraghor/nestjs-typed/provided-injected-should-match-factory-parameters": "warn",
 		"no-nested-ternary": "off",
 		"simple-import-sort/imports": "warn",
