@@ -177,20 +177,20 @@ export class OrderController {
 				}
 				// Check each attr
 				for (const attribute of Object.keys(item.attributes)) {
-					// Must be array
-					if (!Array.isArray(item.attributes[attribute])) {
+					const attributeValue = item.attributes[attribute];
+					if (!attributeValue) {
+						throw new PublicError("INVALID_ITEMS");
+					}
+					// Must be an array
+					if (!Array.isArray(attributeValue)) {
 						throw new PublicError("INVALID_ITEMS");
 					}
 					// Must have at least one value
-					if (item.attributes[attribute].length === 0) {
+					if (attributeValue.length === 0) {
 						throw new PublicError("INVALID_ITEMS");
 					}
 					// Check each value
-					for (const value of item.attributes[attribute]) {
-						// Must be string
-						if (typeof value !== "string") {
-							throw new PublicError("INVALID_ITEMS");
-						}
+					for (const value of attributeValue) {
 						// Must have at least one character
 						if (value.length === 0) {
 							throw new PublicError("INVALID_ITEMS");
@@ -382,7 +382,9 @@ export class OrderController {
 				this.logger.warn(error.stack);
 			} else {
 				this.logger.error(error);
-				this.logger.error(error.stack);
+				if (error instanceof Error) {
+					this.logger.error(error.stack);
+				}
 			}
 
 			return {
@@ -392,7 +394,7 @@ export class OrderController {
 	}
 
 	@Post("webhook/mono")
-	async monoWebhook(@Body() body: IMonobankWebhookDto | IMonobankErrorDto) {
+	async monoWebhook(@Body() body: IMonobankWebhookDto | IMonobankErrorDto): Promise<void> {
 		this.logger.log("MONO WEBHOOK", JSON.stringify(body));
 
 		if (isIMonobankError(body)) {
