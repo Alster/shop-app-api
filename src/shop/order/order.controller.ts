@@ -10,6 +10,7 @@ import {
 	Redirect,
 	Res,
 } from "@nestjs/common";
+import * as assert from "assert";
 
 import { loadExchangeState } from "../../../shop-exchange-shared/loadExchangeState";
 import {
@@ -197,18 +198,14 @@ export class OrderController {
 						}
 					}
 				}
-				// Must have qty
-				if (!item.qty) {
-					throw new PublicError("INVALID_ITEMS");
-				}
-				// Must be number
-				if (typeof item.qty !== "number") {
-					throw new PublicError("INVALID_ITEMS");
-				}
-				// Must be greater than 0
-				if (item.qty <= 0) {
-					throw new PublicError("INVALID_ITEMS");
-				}
+				assert.ok(item.productId, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.productId === "string", new PublicError("INVALID_ITEMS"));
+				assert.ok(item.sku, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.sku === "string", new PublicError("INVALID_ITEMS"));
+				assert.ok(item.images, new PublicError("INVALID_ITEMS"));
+				assert.ok(Array.isArray(item.images), new PublicError("INVALID_ITEMS"));
+				assert.ok(item.attributes, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.attributes === "object", new PublicError("INVALID_ITEMS"));
 			}
 			// Where to deliver
 			if (!where_to_deliver) {

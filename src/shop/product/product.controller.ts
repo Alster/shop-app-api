@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Param, Query } from "@nestjs/common";
 
+import { AttributesEnum } from "../../../shop-shared/constants/attributesEnum";
 import { LanguageEnum } from "../../../shop-shared/constants/localization";
 import { AttributeDto } from "../../../shop-shared/dto/product/attribute.dto";
 import { ProductDto } from "../../../shop-shared/dto/product/product.dto";
@@ -7,10 +8,14 @@ import { ProductListResponseDto } from "../../../shop-shared/dto/product/product
 import { mapAttributeDocumentToAttributeDto } from "../../../shop-shared-server/mapper/product/map.attributeDocument.to.attributeDto";
 import { mapProductDocumentToProductDto } from "../../../shop-shared-server/mapper/product/map.productDocument.to.productDto";
 import { ProductService } from "../../../shop-shared-server/service/product/product.service";
+import ColorService from "../color.service";
 
 @Controller("product")
 export class ProductController {
-	constructor(private readonly productService: ProductService) {}
+	constructor(
+		private readonly productService: ProductService,
+		private readonly colorService: ColorService,
+	) {}
 
 	private logger: Logger = new Logger(ProductController.name);
 
@@ -84,7 +89,13 @@ export class ProductController {
 
 		if (attributes) {
 			for (const { key, values } of attributes) {
-				query[`attrs.${key}`] = { $in: values };
+				const valuesSet = new Set(
+					key === AttributesEnum.COLOR
+						? this.colorService.getNearestColors(values)
+						: values,
+				);
+
+				query[`attrs.${key}`] = { $in: [...valuesSet.values()] };
 			}
 		}
 
