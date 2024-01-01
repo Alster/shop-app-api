@@ -1,6 +1,5 @@
 import { Controller, Get, Logger, Param, Query } from "@nestjs/common";
 
-import { AttributesEnum } from "../../../shop-shared/constants/attributesEnum";
 import { LanguageEnum } from "../../../shop-shared/constants/localization";
 import { AttributeDto } from "../../../shop-shared/dto/product/attribute.dto";
 import { ProductDto } from "../../../shop-shared/dto/product/product.dto";
@@ -90,9 +89,10 @@ export class ProductController {
 		if (attributes) {
 			for (const { key, values } of attributes) {
 				const valuesSet = new Set(
-					key === AttributesEnum.COLOR
-						? this.colorService.getNearestColors(values)
-						: values,
+					// key === AttributesEnum.COLOR
+					// 	? this.colorService.getNearestColors(values)
+					// 	: values,
+					values,
 				);
 
 				query[`attrs.${key}`] = { $in: [...valuesSet.values()] };
@@ -110,9 +110,11 @@ export class ProductController {
 
 		const result = await this.productService.find(query, sort, skip, limit, lang);
 
+		const colorInFilters = attributes && attributes.find((a) => a.key === "color")?.values;
+
 		return {
 			products: result.products.map((product) =>
-				mapProductDocumentToProductDto(product, lang),
+				mapProductDocumentToProductDto(product, lang, colorInFilters),
 			),
 			total: result.total,
 			filters: result.filters,
