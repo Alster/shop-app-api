@@ -375,12 +375,12 @@ export class OrderController {
 			let errorDescription = `INTERNAL_ERROR`;
 			if (error instanceof PublicError) {
 				errorDescription = error.message;
-				this.logger.warn(error);
 				this.logger.warn(error.stack);
 			} else {
-				this.logger.error(error);
 				if (error instanceof Error) {
 					this.logger.error(error.stack);
+				} else {
+					this.logger.error(error);
 				}
 			}
 
