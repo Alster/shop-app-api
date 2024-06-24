@@ -8,7 +8,7 @@ RUN yarn config set globalFolder /usr/local/share/.cache/yarn2
 FROM base AS install-dev-dependencies
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
-RUN --mount=type=cache,sharing=locked,target=/usr/local/share/.cache/yarn2,rw yarn
+RUN --mount=type=cache,sharing=locked,id=yarn2,target=/usr/local/share/.cache/yarn2,rw yarn
 COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 
 # Installing prod dependencies:
@@ -16,7 +16,7 @@ FROM base AS install-prod-dependencies
 ENV NODE_ENV production
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
-RUN --mount=type=cache,sharing=locked,target=/usr/local/share/.cache/yarn2,rw yarn workspaces focus --all --production
+RUN --mount=type=cache,sharing=locked,id=yarn2,target=/usr/local/share/.cache/yarn2,rw yarn workspaces focus --all --production
 COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 
 # Creating a build:
