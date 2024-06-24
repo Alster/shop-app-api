@@ -6,7 +6,9 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
-      { "include": "pnpm-lock.yaml" }
+      { "include": "yarn.lock" },
+      { "include": ".yarnrc.yml" },
+      { "include": "config/**/*" }
     ]
   }
 }

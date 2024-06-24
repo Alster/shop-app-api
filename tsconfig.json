@@ -1,7 +1,10 @@
 {
   "extends": "./shop-shared-server/tsconfig.nest.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "include": [
     ".eslintrc.js",

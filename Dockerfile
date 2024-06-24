@@ -24,7 +24,7 @@ FROM base AS create-build
 ENV NODE_ENV production
 WORKDIR /app
 COPY . .
-COPY --from=install-dev-dependencies /app ./
+COPY --from=install-dev-dependencies /app/node_modules ./node_modules
 RUN yarn run build
 USER node
 
@@ -35,5 +35,5 @@ WORKDIR /app
 COPY --from=create-build /app/dist ./
 COPY --from=install-prod-dependencies /app/node_modules ./node_modules
 
-CMD ["yarn", "start"]
+CMD ["yarn", "start:prod"]
 
