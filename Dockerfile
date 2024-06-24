@@ -32,7 +32,7 @@ USER node
 FROM base AS run
 ENV NODE_ENV production
 WORKDIR /app
-COPY --from=create-build /app/build ./
+COPY --from=create-build /app/dist ./
 COPY --from=install-prod-dependencies /app/node_modules ./node_modules
 
 CMD ["yarn", "start"]
