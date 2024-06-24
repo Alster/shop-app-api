@@ -1,8 +1,13 @@
+// eslint-disable-next-line unicorn/prefer-module
 module.exports = {
-	extends: "./shop-shared/.eslintrc.nest.js",
+	root: true,
 	parserOptions: {
+		ecmaVersion: "latest",
 		project: "tsconfig.json",
-		tsconfigRootDir: __dirname,
+		tsconfigRootDir: "./",
 		sourceType: "module",
+		parser: "@typescript-eslint/parser",
 	},
+	plugins: ["@typescript-eslint", "@typescript-eslint/eslint-plugin"],
+	extends: ["./shop-shared/.eslintrc.base.js", "./shop-shared/.eslintrc.nest.js"],
 };

@@ -10,6 +10,7 @@ import {
 	Redirect,
 	Res,
 } from "@nestjs/common";
+import * as assert from "assert";
 
 import { loadExchangeState } from "../../../shop-exchange-shared/loadExchangeState";
 import {
@@ -177,38 +178,34 @@ export class OrderController {
 				}
 				// Check each attr
 				for (const attribute of Object.keys(item.attributes)) {
-					// Must be array
-					if (!Array.isArray(item.attributes[attribute])) {
+					const attributeValue = item.attributes[attribute];
+					if (!attributeValue) {
+						throw new PublicError("INVALID_ITEMS");
+					}
+					// Must be an array
+					if (!Array.isArray(attributeValue)) {
 						throw new PublicError("INVALID_ITEMS");
 					}
 					// Must have at least one value
-					if (item.attributes[attribute].length === 0) {
+					if (attributeValue.length === 0) {
 						throw new PublicError("INVALID_ITEMS");
 					}
 					// Check each value
-					for (const value of item.attributes[attribute]) {
-						// Must be string
-						if (typeof value !== "string") {
-							throw new PublicError("INVALID_ITEMS");
-						}
+					for (const value of attributeValue) {
 						// Must have at least one character
 						if (value.length === 0) {
 							throw new PublicError("INVALID_ITEMS");
 						}
 					}
 				}
-				// Must have qty
-				if (!item.qty) {
-					throw new PublicError("INVALID_ITEMS");
-				}
-				// Must be number
-				if (typeof item.qty !== "number") {
-					throw new PublicError("INVALID_ITEMS");
-				}
-				// Must be greater than 0
-				if (item.qty <= 0) {
-					throw new PublicError("INVALID_ITEMS");
-				}
+				assert.ok(item.productId, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.productId === "string", new PublicError("INVALID_ITEMS"));
+				assert.ok(item.sku, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.sku === "string", new PublicError("INVALID_ITEMS"));
+				assert.ok(item.images, new PublicError("INVALID_ITEMS"));
+				assert.ok(Array.isArray(item.images), new PublicError("INVALID_ITEMS"));
+				assert.ok(item.attributes, new PublicError("INVALID_ITEMS"));
+				assert.ok(typeof item.attributes === "object", new PublicError("INVALID_ITEMS"));
 			}
 			// Where to deliver
 			if (!where_to_deliver) {
@@ -378,11 +375,13 @@ export class OrderController {
 			let errorDescription = `INTERNAL_ERROR`;
 			if (error instanceof PublicError) {
 				errorDescription = error.message;
-				this.logger.warn(error);
 				this.logger.warn(error.stack);
 			} else {
-				this.logger.error(error);
-				this.logger.error(error.stack);
+				if (error instanceof Error) {
+					this.logger.error(error.stack);
+				} else {
+					this.logger.error(error);
+				}
 			}
 
 			return {
@@ -392,7 +391,7 @@ export class OrderController {
 	}
 
 	@Post("webhook/mono")
-	async monoWebhook(@Body() body: IMonobankWebhookDto | IMonobankErrorDto) {
+	async monoWebhook(@Body() body: IMonobankWebhookDto | IMonobankErrorDto): Promise<void> {
 		this.logger.log("MONO WEBHOOK", JSON.stringify(body));
 
 		if (isIMonobankError(body)) {

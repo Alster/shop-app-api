@@ -16,6 +16,7 @@ import { CategoryService } from "../../shop-shared-server/service/category/categ
 import { OrderService } from "../../shop-shared-server/service/order/order.service";
 import { ProductService } from "../../shop-shared-server/service/product/product.service";
 import { CategoryController } from "./category/category.controller";
+import ColorService from "./color.service";
 import { OrderController } from "./order/order.controller";
 import { ProductController } from "./product/product.controller";
 
@@ -29,7 +30,7 @@ import { ProductController } from "./product/product.controller";
 			{ name: Order.name, schema: OrderSchema },
 		]),
 	],
-	providers: [ProductService, CategoryService, OrderService],
+	providers: [ProductService, CategoryService, OrderService, ColorService],
 	controllers: [ProductController, CategoryController, OrderController],
 })
 export class ShopModule {}
