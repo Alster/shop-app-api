@@ -1,39 +1,19 @@
-# Base node image:
-FROM node:20-alpine AS base
-RUN yarn set version berry
-RUN yarn config set enableGlobalCache true
-RUN yarn config set globalFolder /usr/local/share/.cache/yarn2
-
-# Installing dev dependencies:
-FROM base AS install-dev-dependencies
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
 WORKDIR /app
-COPY package.json yarn.lock .yarnrc.yml ./
-RUN --mount=type=cache,sharing=locked,id=yarn2,target=/usr/local/share/.cache/yarn2,rw yarn
-COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 
-# Installing prod dependencies:
-FROM base AS install-prod-dependencies
-ENV NODE_ENV production
-WORKDIR /app
-COPY package.json yarn.lock .yarnrc.yml ./
-RUN --mount=type=cache,sharing=locked,id=yarn2,target=/usr/local/share/.cache/yarn2,rw yarn workspaces focus --all --production
-COPY tsconfig.json tsconfig.build.json nest-cli.json ./
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store,sharing=locked pnpm install --prod --frozen-lockfile
 
-# Creating a build:
-FROM base AS create-build
-ENV NODE_ENV production
-WORKDIR /app
-COPY . .
-COPY --from=install-dev-dependencies /app/node_modules ./node_modules
-RUN yarn run build
-USER node
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store,sharing=locked pnpm install --frozen-lockfile
+RUN pnpm run build
 
-# Running the application:
-FROM base AS run
-ENV NODE_ENV production
-WORKDIR /app
-COPY --from=create-build /app/dist ./
-COPY --from=install-prod-dependencies /app/node_modules ./node_modules
-
-CMD ["yarn", "start:prod"]
-
+FROM base
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/dist /app/dist
+EXPOSE 4300
+CMD [ "pnpm", "run", "start:prod" ]
