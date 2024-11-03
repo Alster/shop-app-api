@@ -3,7 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/shop-exchange-shared/*": ["./shop-exchange-shared/*"],
+      "@/shop-shared/*": ["./shop-shared/*"],
+      "@/shop-shared-server/*": ["./shop-shared-server/*"],
+      "@/src/*": ["./src/*"]
     }
   },
   "include": [
@@ -17,3 +20,4 @@
     "src/**/package.json",
   ]
 }
+
