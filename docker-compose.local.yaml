@@ -1,14 +1,26 @@
 version: "3"
 
 services:
-  mongodb_local_single_replica:
-    image: mongo:5.0.4
-    container_name: mongodb_local_single_replica
-    ports:
-      - "27037:27037"
+  shop-app-api:
+    hostname: unicorn-shop-app-api
+    image: unicorn-shop-app-api
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
+    env_file:
+      - ./.env.local
     environment:
-      - MONGODB_DATABASE="unicorn"
-    volumes:
-      - ./docker/volume/mongodb_local:/data/db
-    entrypoint: [ "/usr/bin/mongod", "--port", "27037", "--bind_ip_all", "--replSet", "rs0" ]
+      - NODE_ENV=production
+    ports:
+      - "3021:3021"
+    networks:
+      - jumpserver
+      - unicorn
+      - default
+
+networks:
+  jumpserver:
+    external: true
+  unicorn:
+    external: true
