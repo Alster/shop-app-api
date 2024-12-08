@@ -1,13 +1,13 @@
 import { Controller, Get, Logger, Param, Query } from "@nestjs/common";
 
-import { AttributesEnum } from "../../../shop-shared/constants/attributesEnum";
-import { LanguageEnum } from "../../../shop-shared/constants/localization";
-import { AttributeDto } from "../../../shop-shared/dto/product/attribute.dto";
-import { ProductDto } from "../../../shop-shared/dto/product/product.dto";
-import { ProductListResponseDto } from "../../../shop-shared/dto/product/productList.response.dto";
-import { mapAttributeDocumentToAttributeDto } from "../../../shop-shared-server/mapper/product/map.attributeDocument.to.attributeDto";
-import { mapProductDocumentToProductDto } from "../../../shop-shared-server/mapper/product/map.productDocument.to.productDto";
-import { ProductService } from "../../../shop-shared-server/service/product/product.service";
+import { AttributesEnum } from "@/shop-shared/constants/attributesEnum";
+import { LanguageEnum } from "@/shop-shared/constants/localization";
+import { AttributeDto } from "@/shop-shared/dto/product/attribute.dto";
+import { ProductDto } from "@/shop-shared/dto/product/product.dto";
+import { ProductListResponseDto } from "@/shop-shared/dto/product/productList.response.dto";
+import { mapAttributeDocumentToAttributeDto } from "@/shop-shared-server/mapper/product/map.attributeDocument.to.attributeDto";
+import { mapProductDocumentToProductDto } from "@/shop-shared-server/mapper/product/map.productDocument.to.productDto";
+import { ProductService } from "@/shop-shared-server/service/product/product.service";
 import ColorService from "../color.service";
 
 @Controller("product")

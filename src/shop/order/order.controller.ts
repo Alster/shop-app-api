@@ -12,40 +12,41 @@ import {
 } from "@nestjs/common";
 import * as assert from "assert";
 
-import { loadExchangeState } from "../../../shop-exchange-shared/loadExchangeState";
+import MainConfigService from "@/src/config/main.config.service";
+
+import { loadExchangeState } from "@/shop-exchange-shared/loadExchangeState";
 import {
 	NOVA_POSHTA_DELIVERY_TYPE,
 	NovaPoshtaDeliveryType,
-} from "../../../shop-shared/constants/checkout";
-import {
-	CURRENCIES,
-	CURRENCY_TO_ISO_4217,
-	CurrencyEnum,
-} from "../../../shop-shared/constants/exchange";
-import { LanguageEnum } from "../../../shop-shared/constants/localization";
-import { ORDER_STATUS, OrderStatus } from "../../../shop-shared/constants/order";
+} from "@/shop-shared/constants/checkout";
+import { CURRENCIES, CURRENCY_TO_ISO_4217, CurrencyEnum } from "@/shop-shared/constants/exchange";
+import { LanguageEnum } from "@/shop-shared/constants/localization";
+import { ORDER_STATUS, OrderStatus } from "@/shop-shared/constants/order";
 import {
 	CreateOrderItemDataDto,
 	DeliveryNVCourierDto,
 	DeliveryNVOfficeDto,
-} from "../../../shop-shared/dto/order/createOrder.dto";
+} from "@/shop-shared/dto/order/createOrder.dto";
 import {
 	IMonobankCreateInvoiceResponseDto,
 	IMonobankErrorDto,
 	IMonobankWebhookDto,
 	isIMonobankError,
 	MonobankInvoiceStatusEnum,
-} from "../../../shop-shared/dto/order/monobank";
-import { OrderDto } from "../../../shop-shared/dto/order/order.dto";
-import { PublicError } from "../../../shop-shared-server/helpers/publicError";
-import { mapOrderDocumentToOrderDto } from "../../../shop-shared-server/mapper/order/map.orderDocument.to.orderDto";
-import { OrderDocument } from "../../../shop-shared-server/schema/order.schema";
-import { OrderService } from "../../../shop-shared-server/service/order/order.service";
-import { fetchMono } from "../../utils/fetch-mono";
+} from "@/shop-shared/dto/order/monobank";
+import { OrderDto } from "@/shop-shared/dto/order/order.dto";
+import { PublicError } from "@/shop-shared-server/helpers/publicError";
+import { mapOrderDocumentToOrderDto } from "@/shop-shared-server/mapper/order/map.orderDocument.to.orderDto";
+import { OrderDocument } from "@/shop-shared-server/schema/order.schema";
+import { OrderService } from "@/shop-shared-server/service/order/order.service";
+import { fetchMono } from "../../utils/fetchMono";
 
 @Controller("order")
 export class OrderController {
-	constructor(private readonly orderService: OrderService) {}
+	constructor(
+		private readonly orderService: OrderService,
+		private readonly mainConfigService: MainConfigService,
+	) {}
 
 	private logger: Logger = new Logger(OrderController.name);
 
@@ -327,30 +328,33 @@ export class OrderController {
 			try {
 				// Create invoice
 				const monoResponse: IMonobankCreateInvoiceResponseDto | IMonobankErrorDto =
-					await fetchMono({
-						amount: totalPrice,
-						ccy: CURRENCY_TO_ISO_4217[currency as CurrencyEnum],
-						merchantPaymInfo: {
-							reference: order._id.toString(),
-							destination: "Покупка щастя",
-							// basketOrder: [
-							//   products.map((product) => ({
-							//     name: getTranslation(product.title, lang as LanguageEnum),
-							//     qty: 1,
-							//     sum: doExchange(
-							//       product.currency,
-							//       currency as CURRENCY,
-							//       product.price,
-							//       exchangeState,
-							//     ),
-							//   })),
-							// ],
+					await fetchMono(
+						{
+							amount: totalPrice,
+							ccy: CURRENCY_TO_ISO_4217[currency as CurrencyEnum],
+							merchantPaymInfo: {
+								reference: order._id.toString(),
+								destination: "Покупка щастя",
+								// basketOrder: [
+								//   products.map((product) => ({
+								//     name: getTranslation(product.title, lang as LanguageEnum),
+								//     qty: 1,
+								//     sum: doExchange(
+								//       product.currency,
+								//       currency as CURRENCY,
+								//       product.price,
+								//       exchangeState,
+								//     ),
+								//   })),
+								// ],
+							},
+							redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
+							webHookUrl: "http://178.54.11.35:4400/order/webhook/mono/",
+							validity: 3600,
+							paymentType: "debit",
 						},
-						redirectUrl: `http://localhost:3000/${lang}/order/${order._id.toString()}`,
-						webHookUrl: "http://178.54.11.35:4400/order/webhook/mono/",
-						validity: 3600,
-						paymentType: "debit",
-					});
+						this.mainConfigService.MONOBANK_API_KEY,
+					);
 				if (isIMonobankError(monoResponse)) {
 					throw new Error(
 						`MONOBANK_ERROR: ${monoResponse.errCode} - ${monoResponse.errText}`,

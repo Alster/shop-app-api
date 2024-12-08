@@ -1,12 +1,8 @@
-import { Config } from "../config/config";
-
-export async function fetchMono<T>(query: any): Promise<T> {
+export async function fetchMono<T>(query: object, apiKey: string): Promise<T> {
 	const response = await fetch(`https://api.monobank.ua/api/merchant/invoice/create`, {
 		method: "POST",
 		body: JSON.stringify(query),
-		headers: {
-			"X-Token": Config.get().monoBankApiKey,
-		},
+		headers: { "X-Token": apiKey },
 	});
 	try {
 		console.error(`Cant parse response. Status: ${response.status} ${response.statusText}`);

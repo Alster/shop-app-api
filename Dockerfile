@@ -19,5 +19,5 @@ ENV NODE_ENV production
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,sharing=locked,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
-COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/dist ./
 CMD ["pnpm", "run", "start:prod"]

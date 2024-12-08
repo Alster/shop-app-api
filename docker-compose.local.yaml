@@ -2,22 +2,11 @@ version: "3"
 
 services:
   shop-app-api:
-    hostname: unicorn-shop-app-api
-    image: unicorn-shop-app-api
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
+    extends:
+      file: ./compose.yaml
+      service: shop-app-api
     env_file:
       - ./.env.local
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "3021:3021"
-    networks:
-      - jumpserver
-      - unicorn
-      - default
 
 networks:
   jumpserver:

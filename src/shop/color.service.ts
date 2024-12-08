@@ -7,11 +7,11 @@ import { diff } from "color-diff";
 import { fromString } from "css-color-converter";
 import { Model } from "mongoose";
 
-import { AttributesEnum } from "../../shop-shared/constants/attributesEnum";
+import { AttributesEnum } from "@/shop-shared/constants/attributesEnum";
 import {
 	ItemAttribute,
 	ItemAttributeDocument,
-} from "../../shop-shared-server/schema/itemAttribute.schema";
+} from "@/shop-shared-server/schema/itemAttribute.schema";
 
 type TRGBObject<Color extends string> = Readonly<{ R: number; G: number; B: number; name: Color }>;
 
