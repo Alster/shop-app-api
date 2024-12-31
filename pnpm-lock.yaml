@@ -71,6 +71,9 @@ importers:
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
+      ts-pattern:
+        specifier: 5.5.0
+        version: 5.5.0
       uuid:
         specifier: 9.0.1
         version: 9.0.1
@@ -3343,6 +3346,9 @@ packages:
         optional: true
       '@swc/wasm':
         optional: true
+
+  ts-pattern@5.5.0:
+    resolution: {integrity: sha512-jqbIpTsa/KKTJYWgPNsFNbLVpwCgzXfFJ1ukNn4I8hMwyQzHMJnk/BqWzggB0xpkILuKzaO/aMYhS0SkaJyKXg==}
 
   tsconfig-paths-webpack-plugin@4.1.0:
     resolution: {integrity: sha512-xWFISjviPydmtmgeUAuXp4N1fky+VCtfhOkDUFIv5ea7p4wuTomI4QTrXvFBX2S4jZsmyTSrStQl+E+4w+RzxA==}
@@ -7387,6 +7393,8 @@ snapshots:
       typescript: 5.3.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+
+  ts-pattern@5.5.0: {}
 
   tsconfig-paths-webpack-plugin@4.1.0:
     dependencies:

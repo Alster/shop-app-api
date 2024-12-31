@@ -40,6 +40,7 @@
     "nestjs-graceful-shutdown": "1.0.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.8.1",
+    "ts-pattern": "5.5.0",
     "uuid": "9.0.1"
   },
   "devDependencies": {

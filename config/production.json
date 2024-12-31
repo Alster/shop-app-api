@@ -1,9 +1,0 @@
-{
-  "port": 3021,
-  "mongo": {
-    "url": "mongodb://unicorn-mongodb:3024/unicorn",
-    "useNewUrlParser": true,
-    "useCreateIndex": true
-  },
-  "monoBankApiKey": ""
-}
